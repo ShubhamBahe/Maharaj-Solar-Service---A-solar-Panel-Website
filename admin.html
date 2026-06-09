@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel — Maharaj Solar Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+      :root {
+        --primary: #f5c542;
+        --dark: #0a0f1e;
+        --sidebar: #111827;
+        --bg: #f3f4f6;
+        --card: #fff;
+        --text: #111;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --green: #10b981;
+        --red: #ef4444;
+        --blue: #3b82f6;
+        --orange: #f97316;
+      }
+      body { background: var(--bg); color: var(--text); }
+
+      /* LOGIN */
+      #login-screen {
+        position: fixed; inset: 0;
+        background: linear-gradient(135deg, #0f1f3d, #1a3a6b);
+        display: flex; align-items: center; justify-content: center; z-index: 9999;
+      }
+      .login-box {
+        background: white; border-radius: 24px; padding: 48px 40px;
+        width: 100%; max-width: 420px; box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+      }
+      .login-logo { text-align: center; font-size: 28px; font-weight: 800; color: #111; margin-bottom: 8px; }
+      .login-sub { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+      .login-box input {
+        width: 100%; border: 1.5px solid #e5e7eb; border-radius: 12px;
+        padding: 14px 16px; font-size: 14px; outline: none; margin-bottom: 14px;
+        font-family: "Poppins", sans-serif; transition: 0.3s;
+      }
+      .login-box input:focus { border-color: var(--primary); }
+      .login-btn {
+        width: 100%; background: var(--primary); color: #111; border: none;
+        padding: 15px; border-radius: 12px; font-size: 15px; font-weight: 700;
+        cursor: pointer; transition: 0.3s;
+      }
+      .login-btn:hover { background: #e6b830; }
+      #login-error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+      .login-hint { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 16px; }
+
+      /* LAYOUT */
+      #app { display: none; min-height: 100vh; }
+      .sidebar {
+        width: 260px; background: var(--sidebar); min-height: 100vh;
+        position: fixed; left: 0; top: 0; z-index: 100; display: flex; flex-direction: column;
+      }
+      .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      .sidebar-logo span { color: white; font-size: 16px; font-weight: 800; display: block; }
+      .sidebar-logo small { color: rgba(255,255,255,0.4); font-size: 11px; }
+      .nav-section-label {
+        padding: 16px 24px 6px; font-size: 10px; font-weight: 700;
+        color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 1px;
+      }
+      .nav-item {
+        display: flex; align-items: center; gap: 12px; padding: 13px 24px;
+        color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+        font-weight: 500; cursor: pointer; transition: 0.2s; border-left: 3px solid transparent;
+      }
+      .nav-item:hover, .nav-item.active {
+        color: white; background: rgba(255,255,255,0.06); border-left-color: var(--primary);
+      }
+      .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
+      .nav-item.home-link { color: rgba(245,197,66,0.8); }
+      .nav-item.home-link:hover { color: var(--primary); background: rgba(245,197,66,0.08); border-left-color: var(--primary); }
+      .sidebar-footer { margin-top: auto; padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.08); }
+      .logout-btn {
+        width: 100%; background: rgba(239,68,68,0.15); color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.2); padding: 10px; border-radius: 10px;
+        font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;
+      }
+      .logout-btn:hover { background: rgba(239,68,68,0.25); }
+
+      .main { margin-left: 260px; min-height: 100vh; }
+      .topbar {
+        background: white; padding: 16px 32px; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+        position: sticky; top: 0; z-index: 50;
+      }
+      .topbar-title { font-size: 18px; font-weight: 700; }
+      .topbar-right { display: flex; align-items: center; gap: 16px; }
+      .admin-badge {
+        background: rgba(245,197,66,0.15); color: #b45309;
+        padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      }
+      .page-content { padding: 32px; }
+
+      /* VIEWS */
+      .view { display: none; }
+      .view.active { display: block; }
+
+      /* STATS CARDS */
+      .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+      .stat-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--border); }
+      .stat-card .sc-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+      .stat-card .sc-val { font-size: 36px; font-weight: 800; color: var(--text); margin: 8px 0 4px; }
+      .stat-card .sc-sub { font-size: 12px; color: var(--green); font-weight: 600; }
+      .stat-card .sc-icon { font-size: 28px; float: right; margin-top: -40px; }
+
+      /* TABLE */
+      .card { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+      .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+      .card-title { font-size: 16px; font-weight: 700; }
+      .search-input {
+        border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px;
+        font-size: 13px; outline: none; width: 220px; font-family: "Poppins", sans-serif;
+      }
+      .search-input:focus { border-color: var(--primary); }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #f9fafb; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+      td { padding: 14px 16px; font-size: 14px; border-top: 1px solid var(--border); vertical-align: middle; }
+      tr:hover td { background: #fafafa; }
+      .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+      .badge-new { background: #dbeafe; color: #1d4ed8; }
+      .badge-contacted { background: #fef9c3; color: #854d0e; }
+      .badge-converted { background: #dcfce7; color: #15803d; }
+      .badge-closed { background: #fee2e2; color: #991b1b; }
+      .badge-inprogress { background: #fef9c3; color: #854d0e; }
+      .badge-completed { background: #dcfce7; color: #15803d; }
+      .badge-pending { background: #f3f4f6; color: #374151; }
+      .action-btn { border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: "Poppins", sans-serif; margin-right: 4px; }
+      .btn-view { background: #eff6ff; color: #3b82f6; }
+      .btn-edit { background: #fefce8; color: #ca8a04; }
+      .btn-delete { background: #fef2f2; color: #ef4444; }
+      .btn-toggle { background: #f0fdf4; color: #15803d; }
+      .btn-primary { background: var(--primary); color: #111; padding: 10px 20px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 14px; font-family: "Poppins", sans-serif; }
+      .btn-primary:hover { background: #e6b830; }
+
+      /* FILTER */
+      .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .filter-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+      .filter-chip.active, .filter-chip:hover { background: var(--primary); border-color: var(--primary); color: #111; }
+
+      /* MODAL */
+      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+      .modal-overlay.open { display: flex; }
+      .modal { background: white; border-radius: 20px; padding: 32px; width: 90%; max-width: 620px; max-height: 90vh; overflow-y: auto; }
+      .modal-wide { max-width: 780px; }
+      .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+      .modal label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; margin-top: 14px; }
+      .modal input, .modal select, .modal textarea {
+        width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+        padding: 11px 14px; font-size: 14px; outline: none; font-family: "Poppins", sans-serif;
+        transition: 0.2s;
+      }
+      .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--primary); }
+      .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+      .btn-cancel { background: #f3f4f6; color: #374151; padding: 10px 20px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; font-family: "Poppins", sans-serif; }
+      .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+      .form-span-2 { grid-column: span 2; }
+
+      /* IMAGE UPLOAD */
+      .img-upload-zone {
+        border: 2px dashed var(--border); border-radius: 12px; padding: 24px;
+        text-align: center; cursor: pointer; transition: 0.3s; background: #fafafa; position: relative;
+      }
+      .img-upload-zone:hover, .img-upload-zone.drag-over { border-color: var(--primary); background: #fffbeb; }
+      .img-upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+      .img-upload-zone .upload-icon { font-size: 32px; margin-bottom: 8px; }
+      .img-upload-zone p { font-size: 13px; color: var(--muted); }
+      .img-upload-zone strong { color: var(--primary); }
+      .img-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+      .img-preview-item { position: relative; border-radius: 10px; overflow: hidden; width: 90px; height: 90px; border: 2px solid var(--border); }
+      .img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+      .img-preview-item .remove-img {
+        position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.6); color: white;
+        border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+      }
+
+      /* STAR RATING */
+      .star-rating { display: flex; gap: 6px; margin-top: 6px; }
+      .star-rating .star { font-size: 28px; cursor: pointer; color: #d1d5db; transition: 0.15s; }
+      .star-rating .star.active, .star-rating .star:hover { color: var(--primary); }
+
+      /* PROJECT CARDS (list with images) */
+      .project-list { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+      .project-card {
+        border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+        display: flex; gap: 0; transition: 0.2s; background: white;
+      }
+      .project-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+      .project-card-img {
+        width: 140px; min-height: 120px; flex-shrink: 0; background: #f3f4f6;
+        display: flex; align-items: center; justify-content: center; font-size: 36px; position: relative; overflow: hidden;
+      }
+      .project-card-img img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+      .project-card-body { flex: 1; padding: 16px 20px; }
+      .project-card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+      .project-card-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+      .project-meta-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+      .project-card-actions { display: flex; align-items: center; gap: 8px; padding: 16px; border-left: 1px solid var(--border); flex-direction: column; justify-content: center; }
+
+      /* REVIEW CARDS */
+      .review-grid { padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .review-card { border: 1px solid var(--border); border-radius: 14px; padding: 20px; background: white; transition: 0.2s; position: relative; }
+      .review-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+      .review-card.hidden-review { opacity: 0.5; border-style: dashed; }
+      .review-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+      .review-avatar {
+        width: 44px; height: 44px; border-radius: 50%; background: var(--primary);
+        display: flex; align-items: center; justify-content: center; font-weight: 800;
+        font-size: 16px; color: #111; flex-shrink: 0; overflow: hidden;
+      }
+      .review-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .review-name { font-size: 14px; font-weight: 700; }
+      .review-location { font-size: 12px; color: var(--muted); }
+      .review-stars { color: var(--primary); font-size: 16px; margin-bottom: 8px; }
+      .review-text { font-size: 13px; color: #374151; line-height: 1.6; }
+      .review-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+      .review-date { font-size: 11px; color: var(--muted); }
+      .review-actions { display: flex; gap: 6px; }
+      .visibility-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 12px; }
+      .visible-on { background: #dcfce7; color: #15803d; }
+      .visible-off { background: #fee2e2; color: #991b1b; }
+
+      /* CHARTS */
+      .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+      .mini-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+      .bar-label { font-size: 13px; color: #374151; width: 120px; flex-shrink: 0; }
+      .bar-track { flex: 1; background: #f3f4f6; border-radius: 20px; height: 8px; }
+      .bar-fill { height: 8px; border-radius: 20px; background: var(--primary); transition: width 0.6s ease; }
+      .bar-val { font-size: 12px; font-weight: 700; color: #374151; width: 40px; text-align: right; }
+
+      /* SETTINGS */
+      .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .settings-card { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 24px; }
+      .settings-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+      .settings-card label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; margin-top: 14px; }
+      .settings-card input, .settings-card textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: "Poppins", sans-serif; }
+      .settings-card input:focus, .settings-card textarea:focus { border-color: var(--primary); }
+
+      /* MISC */
+      .empty-state { text-align: center; padding: 60px; color: var(--muted); }
+      .empty-state div { font-size: 40px; margin-bottom: 12px; }
+      .section-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+      @media (max-width: 900px) {
+        .sidebar { width: 200px; }
+        .main { margin-left: 200px; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .chart-grid, .settings-grid { grid-template-columns: 1fr; }
+        .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+        .form-span-2 { grid-column: span 1; }
+      }
+      @media (max-width: 640px) {
+        .sidebar { transform: translateX(-100%); position: fixed; }
+        .main { margin-left: 0; }
+        .project-card { flex-direction: column; }
+        .project-card-img { width: 100%; height: 160px; }
+        .project-card-actions { flex-direction: row; border-left: none; border-top: 1px solid var(--border); }
+      }
+
+      /* Inline form styles used in add-lead view */
+      .field-label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; color: #374151; }
+      .field-input {
+        width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+        padding: 11px 14px; font-size: 14px; outline: none; font-family: "Poppins", sans-serif;
+        transition: 0.2s;
+      }
+      .field-input:focus { border-color: var(--primary); }
+    </style>
+  </head>
+  <body>
+
+    <!-- LOGIN -->
+    <div id="login-screen">
+      <div class="login-box">
+        <div class="login-logo">☀️ Maharaj Solar</div>
+        <div class="login-sub">Admin Panel — Secure Access</div>
+        <input type="text" id="username" placeholder="Username" autocomplete="off" />
+        <input type="password" id="password" placeholder="Password" />
+        <button class="login-btn" onclick="doLogin()">Login →</button>
+        <div id="login-error">❌ Invalid credentials. Please try again.</div>
+        <div class="login-hint">Default: admin / maharaj2025</div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app">
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <span>☀️ Maharaj Solar</span>
+          <small>Admin Dashboard</small>
+        </div>
+        <nav style="padding: 8px 0; flex: 1; overflow-y: auto;">
+          <div class="nav-section-label">Main</div>
+          <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard', this)">
+            <span class="icon">📊</span> Dashboard
+          </div>
+          <div class="nav-item" data-view="leads" onclick="showView('leads', this)">
+            <span class="icon">👥</span> Leads / Enquiries
+          </div>
+          <div class="nav-item" data-view="add-lead" onclick="showView('add-lead', this)">
+            <span class="icon">➕</span> Add Lead
+          </div>
+
+          <div class="nav-section-label">Content</div>
+          <div class="nav-item" data-view="projects" onclick="showView('projects', this)">
+            <span class="icon">🔧</span> Projects
+          </div>
+          <div class="nav-item" data-view="reviews" onclick="showView('reviews', this)">
+            <span class="icon">⭐</span> Reviews
+          </div>
+
+          <div class="nav-section-label">System</div>
+          <div class="nav-item" data-view="settings" onclick="showView('settings', this)">
+            <span class="icon">⚙️</span> Settings
+          </div>
+          <div class="nav-item home-link" onclick="goToWebsite()">
+            <span class="icon">🏠</span> View Website ↗
+          </div>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="main">
+        <div class="topbar">
+          <div class="topbar-title" id="page-title">Dashboard</div>
+          <div class="topbar-right">
+            <span style="font-size:13px;color:#6b7280;" id="current-date"></span>
+            <button class="btn-primary" style="padding:8px 16px;font-size:13px;" onclick="goToWebsite()">🏠 View Site</button>
+            <span class="admin-badge">Admin</span>
+          </div>
+        </div>
+
+        <div class="page-content">
+
+          <!-- DASHBOARD VIEW -->
+          <div class="view active" id="view-dashboard">
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="sc-icon">👥</div>
+                <div class="sc-label">Total Leads</div>
+                <div class="sc-val" id="stat-total">0</div>
+                <div class="sc-sub">All time</div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-icon">🆕</div>
+                <div class="sc-label">New Leads</div>
+                <div class="sc-val" id="stat-new">0</div>
+                <div class="sc-sub">Need follow-up</div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-icon">✅</div>
+                <div class="sc-label">Converted</div>
+                <div class="sc-val" id="stat-converted">0</div>
+                <div class="sc-sub">Closed deals</div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-icon">🔧</div>
+                <div class="sc-label">Projects</div>
+                <div class="sc-val" id="stat-projects">0</div>
+                <div class="sc-sub">Installations</div>
+              </div>
+            </div>
+            <div class="chart-grid">
+              <div class="card">
+                <div class="card-header"><div class="card-title">Leads by System Type</div></div>
+                <div style="padding:20px 24px" id="chart-type"></div>
+              </div>
+              <div class="card">
+                <div class="card-header"><div class="card-title">Leads by Status</div></div>
+                <div style="padding:20px 24px" id="chart-status"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Recent Leads</div>
+                <button class="btn-primary" onclick="showView('leads', document.querySelector('[data-view=leads]'))">View All →</button>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Name</th><th>Phone</th><th>System</th><th>City</th><th>Status</th><th>Date</th></tr>
+                </thead>
+                <tbody id="recent-leads-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEADS VIEW -->
+          <div class="view" id="view-leads">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">All Leads / Enquiries</div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                  <input type="text" class="search-input" id="lead-search" placeholder="🔍 Search by name or phone..." oninput="renderLeads()" />
+                  <button class="btn-primary" onclick="showView('add-lead', document.querySelector('[data-view=add-lead]'))">+ Add Lead</button>
+                </div>
+              </div>
+              <div style="padding:16px 24px;border-bottom:1px solid var(--border);">
+                <div class="filter-row">
+                  <div class="filter-chip active" onclick="filterLeads('all', this)">All</div>
+                  <div class="filter-chip" onclick="filterLeads('New', this)">New</div>
+                  <div class="filter-chip" onclick="filterLeads('Contacted', this)">Contacted</div>
+                  <div class="filter-chip" onclick="filterLeads('Converted', this)">Converted</div>
+                  <div class="filter-chip" onclick="filterLeads('Closed', this)">Closed</div>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Name</th><th>Phone</th><th>Email</th><th>System Type</th><th>City</th><th>Bill (₹)</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="leads-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ADD LEAD VIEW -->
+          <div class="view" id="view-add-lead">
+            <div class="card" style="max-width:700px;">
+              <div class="card-header"><div class="card-title">Add New Lead</div></div>
+              <div style="padding:24px;">
+                <div class="form-grid-2">
+                  <div>
+                    <label class="field-label">Name *</label>
+                    <input type="text" id="new-name" class="field-input" placeholder="Customer name" />
+                  </div>
+                  <div>
+                    <label class="field-label">Phone *</label>
+                    <input type="tel" id="new-phone" class="field-input" placeholder="Mobile number" />
+                  </div>
+                  <div>
+                    <label class="field-label">Email</label>
+                    <input type="email" id="new-email" class="field-input" placeholder="Email address" />
+                  </div>
+                  <div>
+                    <label class="field-label">System Type</label>
+                    <select id="new-system" class="field-input">
+                      <option value="">Select type</option>
+                      <option>Residential (Home)</option>
+                      <option>Commercial (Office/Shop)</option>
+                      <option>Industrial (Factory)</option>
+                      <option>Agriculture</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">City/Area</label>
+                    <input type="text" id="new-city" class="field-input" placeholder="City or area in Nagpur" />
+                  </div>
+                  <div>
+                    <label class="field-label">Monthly Bill (₹)</label>
+                    <input type="text" id="new-bill" class="field-input" placeholder="e.g. 3000" />
+                  </div>
+                  <div>
+                    <label class="field-label">Status</label>
+                    <select id="new-status" class="field-input">
+                      <option>New</option><option>Contacted</option><option>Converted</option><option>Closed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">Assigned To</label>
+                    <select id="new-assigned" class="field-input">
+                      <option>Rinkesh Puri</option><option>Tushant Parwat</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:16px;">
+                  <label class="field-label">Notes</label>
+                  <textarea id="new-notes" rows="3" class="field-input" placeholder="Additional notes..."></textarea>
+                </div>
+                <div style="margin-top:20px;display:flex;gap:12px;">
+                  <button class="btn-primary" onclick="saveLead()">Save Lead ✅</button>
+                  <button class="btn-cancel" onclick="showView('leads', document.querySelector('[data-view=leads]'))">Cancel</button>
+                </div>
+                <div id="save-msg" style="display:none;margin-top:14px;background:#dcfce7;color:#15803d;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;">✅ Lead saved successfully!</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROJECTS VIEW -->
+          <div class="view" id="view-projects">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Installation Projects</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Add projects with photos to showcase on your website</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <div class="filter-row" id="project-filter-row">
+                    <div class="filter-chip active" onclick="filterProjects('all',this)">All</div>
+                    <div class="filter-chip" onclick="filterProjects('Completed',this)">Completed</div>
+                    <div class="filter-chip" onclick="filterProjects('In Progress',this)">In Progress</div>
+                    <div class="filter-chip" onclick="filterProjects('Pending',this)">Pending</div>
+                  </div>
+                  <button class="btn-primary" onclick="openProjectModal()">+ Add Project</button>
+                </div>
+              </div>
+              <div class="project-list" id="projects-list"></div>
+            </div>
+          </div>
+
+          <!-- REVIEWS VIEW -->
+          <div class="view" id="view-reviews">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Customer Reviews</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Manage reviews shown on your website. Toggle visibility to show/hide.</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <div class="filter-row">
+                    <div class="filter-chip active" onclick="filterReviews('all',this)">All</div>
+                    <div class="filter-chip" onclick="filterReviews('visible',this)">Visible</div>
+                    <div class="filter-chip" onclick="filterReviews('hidden',this)">Hidden</div>
+                  </div>
+                  <button class="btn-primary" onclick="openReviewModal()">+ Add Review</button>
+                </div>
+              </div>
+              <div class="review-grid" id="reviews-grid"></div>
+            </div>
+          </div>
+
+          <!-- SETTINGS VIEW -->
+          <div class="view" id="view-settings">
+            <div class="settings-grid">
+              <div class="settings-card">
+                <h3>🏢 Company Info</h3>
+                <label>Company Name</label>
+                <input type="text" id="s-name" value="Maharaj Solar Services" />
+                <label>Phone 1 (Rinkesh Puri)</label>
+                <input type="text" id="s-phone1" value="8180940632" />
+                <label>Phone 2 (Tushant Parwat)</label>
+                <input type="text" id="s-phone2" value="7709182641" />
+                <label>GSTIN</label>
+                <input type="text" id="s-gstin" value="27EJTPP4595R1ZN" />
+                <label>WhatsApp Number</label>
+                <input type="text" id="s-wa" value="918180940632" />
+                <label>Website URL</label>
+                <input type="text" id="s-website" value="index.html" placeholder="https://yourwebsite.com or index.html" />
+                <button class="btn-primary" style="margin-top:20px;" onclick="saveSettings()">Save Changes</button>
+              </div>
+              <div class="settings-card">
+                <h3>📍 Addresses</h3>
+                <label>Address 1</label>
+                <textarea rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;outline:none;font-family:'Poppins',sans-serif;">Shop No.1, Shantinagar Road, Ratan Tower Opp. Hatim Apartment, Nagpur</textarea>
+                <label>Address 2</label>
+                <textarea rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;outline:none;font-family:'Poppins',sans-serif;">Plot No.347 Samarth Gajanan Society Dattawadi Nagpur-440023</textarea>
+                <h3 style="margin-top:24px;">🔒 Change Password</h3>
+                <label>New Password</label>
+                <input type="password" id="new-pass" placeholder="Enter new password" />
+                <button class="btn-primary" style="margin-top:16px;" onclick="changePass()">Update Password</button>
+                <div id="pass-msg" style="display:none;margin-top:10px;color:var(--green);font-size:13px;font-weight:600;">✅ Password updated!</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- LEAD DETAIL MODAL -->
+    <div class="modal-overlay" id="modal-lead">
+      <div class="modal">
+        <div class="modal-title">Lead Details</div>
+        <div id="modal-lead-content"></div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeModal('modal-lead')">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECT MODAL (full details + image upload) -->
+    <div class="modal-overlay" id="modal-project">
+      <div class="modal modal-wide">
+        <div class="modal-title">🔧 <span id="project-modal-title">Add New Project</span></div>
+
+        <div class="form-grid-2">
+          <div class="form-span-2">
+            <label>Project / Installation Name *</label>
+            <input type="text" id="p-name" placeholder="e.g. 5kW Residential Solar — Civil Lines" />
+          </div>
+          <div>
+            <label>Customer Name</label>
+            <input type="text" id="p-customer" placeholder="Full name of customer" />
+          </div>
+          <div>
+            <label>Customer Phone</label>
+            <input type="tel" id="p-phone" placeholder="Contact number" />
+          </div>
+          <div>
+            <label>System Type</label>
+            <select id="p-type">
+              <option>Residential</option>
+              <option>Commercial</option>
+              <option>Industrial</option>
+              <option>Agriculture</option>
+            </select>
+          </div>
+          <div>
+            <label>Capacity (kW)</label>
+            <input type="number" id="p-kw" placeholder="e.g. 5" step="0.5" min="0" />
+          </div>
+          <div>
+            <label>Location / Area</label>
+            <input type="text" id="p-loc" placeholder="Area, City" />
+          </div>
+          <div>
+            <label>Installation Date</label>
+            <input type="date" id="p-date" />
+          </div>
+          <div>
+            <label>Status</label>
+            <select id="p-status">
+              <option>In Progress</option>
+              <option>Completed</option>
+              <option>Pending</option>
+            </select>
+          </div>
+          <div>
+            <label>Project Cost (₹)</label>
+            <input type="text" id="p-cost" placeholder="e.g. 1,50,000" />
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Subsidy Applied</label>
+          <select id="p-subsidy">
+            <option value="">Not Applied</option>
+            <option>PM Surya Ghar (Central)</option>
+            <option>State Subsidy</option>
+            <option>Both Central + State</option>
+          </select>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Project Description / Notes</label>
+          <textarea id="p-desc" rows="3" placeholder="Describe the project, special features, challenges, customer feedback..."></textarea>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Project Images</label>
+          <div class="img-upload-zone" id="p-upload-zone" ondragover="handleDragOver(event,'p-upload-zone')" ondragleave="handleDragLeave('p-upload-zone')" ondrop="handleDrop(event,'p')">
+            <input type="file" id="p-images" accept="image/*" multiple onchange="handleImageSelect(this,'p')" />
+            <div class="upload-icon">📸</div>
+            <p><strong>Click to upload</strong> or drag & drop photos</p>
+            <p style="margin-top:4px;font-size:12px;">JPG, PNG, WebP — Multiple images allowed</p>
+          </div>
+          <div class="img-previews" id="p-previews"></div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+          <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="p-featured" style="width:16px;height:16px;" />
+            <span>Feature this project on the website</span>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeModal('modal-project');resetProjectForm();">Cancel</button>
+          <button class="btn-primary" onclick="saveProject()">💾 Save Project</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW MODAL (star picker + photo upload) -->
+    <div class="modal-overlay" id="modal-review">
+      <div class="modal">
+        <div class="modal-title">⭐ <span id="review-modal-title">Add Customer Review</span></div>
+
+        <div class="form-grid-2">
+          <div>
+            <label>Customer Name *</label>
+            <input type="text" id="r-name" placeholder="Full name" />
+          </div>
+          <div>
+            <label>Location / Area</label>
+            <input type="text" id="r-loc" placeholder="e.g. Civil Lines, Nagpur" />
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Rating</label>
+          <div class="star-rating" id="star-picker">
+            <span class="star active" data-val="1" onclick="setRating(1)">★</span>
+            <span class="star active" data-val="2" onclick="setRating(2)">★</span>
+            <span class="star active" data-val="3" onclick="setRating(3)">★</span>
+            <span class="star active" data-val="4" onclick="setRating(4)">★</span>
+            <span class="star active" data-val="5" onclick="setRating(5)">★</span>
+          </div>
+          <input type="hidden" id="r-rating" value="5" />
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Review Text</label>
+          <textarea id="r-text" rows="4" placeholder="What did the customer say about the installation?"></textarea>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>System Installed</label>
+          <input type="text" id="r-system" placeholder="e.g. 3kW Residential, Nagpur" />
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Review Date</label>
+          <input type="date" id="r-date" />
+        </div>
+
+        <div style="margin-top:14px;">
+          <label>Customer Photo (optional)</label>
+          <div class="img-upload-zone" id="r-upload-zone" ondragover="handleDragOver(event,'r-upload-zone')" ondragleave="handleDragLeave('r-upload-zone')" ondrop="handleDrop(event,'r-single')">
+            <input type="file" id="r-photo" accept="image/*" onchange="handleImageSelect(this,'r-single')" />
+            <div class="upload-icon">🤳</div>
+            <p><strong>Upload customer photo</strong> (optional)</p>
+          </div>
+          <div class="img-previews" id="r-single-previews"></div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
+          <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="r-visible" checked style="width:16px;height:16px;" />
+            <span>Visible on website</span>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeModal('modal-review');resetReviewForm();">Cancel</button>
+          <button class="btn-primary" onclick="saveReview()">💾 Save Review</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ===== AUTH =====
+      const ADMIN_USER = "admin";
+      let adminPass = localStorage.getItem("mss_pass") || "maharaj2025";
+
+      function doLogin() {
+        const u = document.getElementById("username").value.trim();
+        const p = document.getElementById("password").value.trim();
+        if (u === ADMIN_USER && p === adminPass) {
+          document.getElementById("login-screen").style.display = "none";
+          document.getElementById("app").style.display = "block";
+          initApp();
+        } else {
+          document.getElementById("login-error").style.display = "block";
+        }
+      }
+      document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+
+      function doLogout() {
+        document.getElementById("login-screen").style.display = "flex";
+        document.getElementById("app").style.display = "none";
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+      }
+
+      function changePass() {
+        const np = document.getElementById("new-pass").value.trim();
+        if (!np) return;
+        localStorage.setItem("mss_pass", np);
+        adminPass = np;
+        document.getElementById("pass-msg").style.display = "block";
+        setTimeout(() => document.getElementById("pass-msg").style.display = "none", 3000);
+      }
+
+      function goToWebsite() {
+        const url = (document.getElementById("s-website") && document.getElementById("s-website").value.trim()) || "index.html";
+        window.open(url, "_blank");
+      }
+
+      // ===== DATA =====
+      function getLeads() { return JSON.parse(localStorage.getItem("mss_leads") || "[]"); }
+      function saveLeads(l) { localStorage.setItem("mss_leads", JSON.stringify(l)); }
+      function getProjects() { return JSON.parse(localStorage.getItem("mss_projects") || "[]"); }
+      function saveProjects(p) { localStorage.setItem("mss_projects", JSON.stringify(p)); }
+      function getReviews() { return JSON.parse(localStorage.getItem("mss_reviews") || "[]"); }
+      function saveReviews(r) { localStorage.setItem("mss_reviews", JSON.stringify(r)); }
+
+      // ===== IMAGE HANDLING (base64 stored in localStorage) =====
+      let tempImages = { p: [], "r-single": [] }; // temp during modal open
+
+      function handleDragOver(e, zoneId) {
+        e.preventDefault();
+        document.getElementById(zoneId).classList.add("drag-over");
+      }
+      function handleDragLeave(zoneId) {
+        document.getElementById(zoneId).classList.remove("drag-over");
+      }
+      function handleDrop(e, prefix) {
+        e.preventDefault();
+        const zoneId = prefix === "r-single" ? "r-upload-zone" : "p-upload-zone";
+        document.getElementById(zoneId).classList.remove("drag-over");
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+        readFiles(files, prefix);
+      }
+      function handleImageSelect(input, prefix) {
+        const files = Array.from(input.files);
+        readFiles(files, prefix);
+        input.value = "";
+      }
+      function readFiles(files, prefix) {
+        if (prefix === "r-single") files = files.slice(0, 1); // only 1 for review
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            if (!tempImages[prefix]) tempImages[prefix] = [];
+            if (prefix === "r-single") tempImages[prefix] = [e.target.result];
+            else tempImages[prefix].push(e.target.result);
+            renderPreviews(prefix);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      function renderPreviews(prefix) {
+        const container = document.getElementById(prefix + "-previews");
+        if (!container) return;
+        container.innerHTML = (tempImages[prefix] || []).map((src, i) => `
+          <div class="img-preview-item">
+            <img src="${src}" alt="preview" />
+            <button class="remove-img" onclick="removeImg('${prefix}',${i})">✕</button>
+          </div>`).join("");
+      }
+      function removeImg(prefix, idx) {
+        tempImages[prefix].splice(idx, 1);
+        renderPreviews(prefix);
+      }
+
+      // ===== SEED DATA =====
+      function seedData() {
+        if (getLeads().length === 0) {
+          saveLeads([
+            { id:1, name:"Rajesh Sharma", phone:"9876543210", email:"rajesh@mail.com", system:"Residential (Home)", city:"Nagpur", bill:"5000", status:"New", assigned:"Rinkesh Puri", notes:"Interested in 5kW system", date:"2025-06-01" },
+            { id:2, name:"Priya Deshmukh", phone:"9123456780", email:"priya@mail.com", system:"Residential (Home)", city:"Dattawadi", bill:"3500", status:"Contacted", assigned:"Tushant Parwat", notes:"Needs subsidy info", date:"2025-06-02" },
+            { id:3, name:"Suresh Gupta", phone:"9988776655", email:"suresh@mail.com", system:"Commercial (Office/Shop)", city:"Shantinagar", bill:"18000", status:"Converted", assigned:"Rinkesh Puri", notes:"15kW commercial", date:"2025-06-03" },
+            { id:4, name:"Anita Wankhede", phone:"8877665544", email:"", system:"Residential (Home)", city:"Nagpur", bill:"4000", status:"New", assigned:"Tushant Parwat", notes:"Wants battery backup", date:"2025-06-04" },
+            { id:5, name:"Mohan Patel", phone:"7766554433", email:"mohan@mail.com", system:"Industrial (Factory)", city:"Nagpur", bill:"85000", status:"Contacted", assigned:"Rinkesh Puri", notes:"100kW factory", date:"2025-06-05" },
+          ]);
+        }
+        if (getProjects().length === 0) {
+          saveProjects([
+            { id:1, name:"3kW Home System", customer:"Rajesh Sharma", phone:"9876543210", type:"Residential", kw:3, location:"Civil Lines, Nagpur", status:"Completed", date:"2025-05-20", cost:"90,000", subsidy:"PM Surya Ghar (Central)", desc:"On-grid 3kW system with net metering. Bill reduced from ₹2500 to near zero.", images:[], featured:true },
+            { id:2, name:"15kW Office Building", customer:"Suresh Gupta", phone:"9988776655", type:"Commercial", kw:15, location:"Shantinagar, Nagpur", status:"Completed", date:"2025-05-25", cost:"4,20,000", subsidy:"", desc:"Complete commercial rooftop installation. Generating 55 units/day average.", images:[], featured:true },
+            { id:3, name:"5kW Hybrid System", customer:"Priya Deshmukh", phone:"9123456780", type:"Residential", kw:5, location:"Dattawadi, Nagpur", status:"In Progress", date:"2025-06-01", cost:"1,85,000", subsidy:"Both Central + State", desc:"Hybrid system with battery backup for power cuts.", images:[], featured:false },
+          ]);
+        }
+        if (getReviews().length === 0) {
+          saveReviews([
+            { id:1, customer:"Rajesh Sharma", location:"Civil Lines, Nagpur", rating:5, text:"Excellent service! My electricity bill dropped to almost zero within the first month. Very professional team.", system:"3kW Residential", date:"2025-05-28", photo:"", visible:true },
+            { id:2, customer:"Priya Deshmukh", location:"Dattawadi, Nagpur", rating:5, text:"Handled all subsidy paperwork on my behalf. The installation was neat and clean. Very happy!", system:"5kW Hybrid", date:"2025-06-01", photo:"", visible:true },
+            { id:3, customer:"Suresh Gupta", location:"Shantinagar, Nagpur", rating:4, text:"Good work on our office installation. Some minor delay but overall very satisfied.", system:"15kW Commercial", date:"2025-05-26", photo:"", visible:false },
+          ]);
+        }
+      }
+
+      // ===== VIEWS =====
+      let currentFilter = "all";
+      let currentProjectFilter = "all";
+      let currentReviewFilter = "all";
+
+      function showView(name, el) {
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+        document.getElementById("view-" + name).classList.add("active");
+        if (el) el.classList.add("active");
+        const titles = { dashboard:"Dashboard", leads:"Leads & Enquiries", "add-lead":"Add New Lead", projects:"Projects", reviews:"Reviews", settings:"Settings" };
+        document.getElementById("page-title").textContent = titles[name] || name;
+        if (name === "dashboard") renderDashboard();
+        if (name === "leads") renderLeads();
+        if (name === "projects") renderProjects();
+        if (name === "reviews") renderReviewsGrid();
+      }
+
+      function initApp() {
+        seedData();
+        document.getElementById("current-date").textContent = new Date().toLocaleDateString("en-IN", { weekday:"short", year:"numeric", month:"short", day:"numeric" });
+        // Set default date fields to today
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("p-date").value = today;
+        document.getElementById("r-date").value = today;
+        renderDashboard();
+      }
+
+      // ===== DASHBOARD =====
+      function renderDashboard() {
+        const leads = getLeads();
+        document.getElementById("stat-total").textContent = leads.length;
+        document.getElementById("stat-new").textContent = leads.filter(l => l.status === "New").length;
+        document.getElementById("stat-converted").textContent = leads.filter(l => l.status === "Converted").length;
+        document.getElementById("stat-projects").textContent = getProjects().length;
+
+        const types = {};
+        leads.forEach(l => { const t = l.system || "Unknown"; types[t] = (types[t] || 0) + 1; });
+        const maxT = Math.max(...Object.values(types), 1);
+        document.getElementById("chart-type").innerHTML = Object.entries(types).map(([k,v]) => `
+          <div class="mini-bar">
+            <div class="bar-label">${k.split(" ")[0]}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(v/maxT)*100}%"></div></div>
+            <div class="bar-val">${v}</div>
+          </div>`).join("") || '<div class="empty-state"><div>📊</div>No data yet</div>';
+
+        const statuses = { New:0, Contacted:0, Converted:0, Closed:0 };
+        leads.forEach(l => { if (statuses[l.status] !== undefined) statuses[l.status]++; });
+        const maxS = Math.max(...Object.values(statuses), 1);
+        document.getElementById("chart-status").innerHTML = Object.entries(statuses).map(([k,v]) => `
+          <div class="mini-bar">
+            <div class="bar-label">${k}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(v/maxS)*100}%"></div></div>
+            <div class="bar-val">${v}</div>
+          </div>`).join("");
+
+        const recent = [...leads].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,5);
+        document.getElementById("recent-leads-body").innerHTML = recent.length
+          ? recent.map(l => `<tr>
+              <td><strong>${l.name}</strong></td>
+              <td><a href="tel:${l.phone}" style="color:#3b82f6;text-decoration:none;">${l.phone}</a></td>
+              <td>${l.system || "-"}</td><td>${l.city || "-"}</td>
+              <td><span class="badge badge-${l.status.toLowerCase()}">${l.status}</span></td>
+              <td>${l.date || "-"}</td>
+            </tr>`).join("")
+          : '<tr><td colspan="6" class="empty-state"><div>📭</div>No leads yet</td></tr>';
+      }
+
+      // ===== LEADS =====
+      function filterLeads(f, el) {
+        currentFilter = f;
+        document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+        el.classList.add("active");
+        renderLeads();
+      }
+      function renderLeads() {
+        const search = (document.getElementById("lead-search") || {}).value?.toLowerCase() || "";
+        let leads = getLeads();
+        if (currentFilter !== "all") leads = leads.filter(l => l.status === currentFilter);
+        if (search) leads = leads.filter(l => l.name.toLowerCase().includes(search) || l.phone.includes(search));
+        const tbody = document.getElementById("leads-body");
+        if (!leads.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div>📭</div>No leads found</td></tr>'; return; }
+        tbody.innerHTML = leads.map(l => `<tr>
+          <td><strong>${l.name}</strong><br/><small style="color:#6b7280;">${l.assigned||""}</small></td>
+          <td><a href="tel:${l.phone}" style="color:#3b82f6;text-decoration:none;">${l.phone}</a></td>
+          <td>${l.email||"-"}</td><td>${l.system||"-"}</td><td>${l.city||"-"}</td>
+          <td>${l.bill ? "₹"+parseInt(l.bill).toLocaleString("en-IN") : "-"}</td>
+          <td>
+            <select onchange="updateStatus(${l.id},this.value)" style="border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;outline:none;font-family:'Poppins',sans-serif;">
+              ${["New","Contacted","Converted","Closed"].map(s => `<option${s===l.status?" selected":""}>${s}</option>`).join("")}
+            </select>
+          </td>
+          <td>${l.date||"-"}</td>
+          <td>
+            <button class="action-btn btn-view" onclick="viewLead(${l.id})">View</button>
+            <button class="action-btn btn-delete" onclick="deleteLead(${l.id})">Del</button>
+          </td>
+        </tr>`).join("");
+      }
+      function updateStatus(id, status) {
+        const leads = getLeads();
+        const lead = leads.find(l => l.id === id);
+        if (lead) { lead.status = status; saveLeads(leads); renderDashboard(); }
+      }
+      function viewLead(id) {
+        const lead = getLeads().find(l => l.id === id);
+        if (!lead) return;
+        document.getElementById("modal-lead-content").innerHTML = `
+          <table style="width:100%;border-collapse:collapse;">
+            ${[["Name",lead.name],["Phone",`<a href="tel:${lead.phone}" style="color:#3b82f6;">${lead.phone}</a>`],["Email",lead.email||"—"],["System",lead.system||"—"],["City",lead.city||"—"],["Monthly Bill",lead.bill?"₹"+parseInt(lead.bill).toLocaleString("en-IN"):"—"],["Status",`<span class="badge badge-${lead.status.toLowerCase()}">${lead.status}</span>`],["Assigned To",lead.assigned||"—"],["Date",lead.date||"—"],["Notes",lead.notes||"—"]].map(([k,v]) => `
+              <tr><td style="padding:10px 0;font-size:13px;font-weight:600;color:#6b7280;width:40%;border-bottom:1px solid #f3f4f6;">${k}</td><td style="padding:10px 0;font-size:14px;border-bottom:1px solid #f3f4f6;">${v}</td></tr>`).join("")}
+          </table>
+          <div style="margin-top:20px;display:flex;gap:10px;">
+            <a href="tel:${lead.phone}" style="text-decoration:none;padding:10px 20px;border-radius:10px;background:var(--primary);color:#111;font-weight:700;font-size:14px;">📞 Call Now</a>
+            <a href="https://wa.me/91${lead.phone}" target="_blank" style="text-decoration:none;padding:10px 20px;border-radius:10px;background:#25d366;color:white;font-weight:700;font-size:14px;">💬 WhatsApp</a>
+          </div>`;
+        document.getElementById("modal-lead").classList.add("open");
+      }
+      function deleteLead(id) {
+        if (!confirm("Delete this lead?")) return;
+        saveLeads(getLeads().filter(l => l.id !== id));
+        renderLeads(); renderDashboard();
+      }
+      function saveLead() {
+        const name = document.getElementById("new-name").value.trim();
+        const phone = document.getElementById("new-phone").value.trim();
+        if (!name || !phone) { alert("Name and Phone are required"); return; }
+        const leads = getLeads();
+        leads.unshift({ id:Date.now(), name, phone, email:document.getElementById("new-email").value.trim(), system:document.getElementById("new-system").value, city:document.getElementById("new-city").value.trim(), bill:document.getElementById("new-bill").value.trim(), status:document.getElementById("new-status").value, assigned:document.getElementById("new-assigned").value, notes:document.getElementById("new-notes").value.trim(), date:new Date().toISOString().split("T")[0] });
+        saveLeads(leads);
+        document.getElementById("save-msg").style.display = "block";
+        ["new-name","new-phone","new-email","new-city","new-bill","new-notes"].forEach(id => document.getElementById(id).value = "");
+        setTimeout(() => document.getElementById("save-msg").style.display = "none", 3000);
+      }
+
+      // ===== PROJECTS =====
+      let editingProjectId = null;
+
+      function filterProjects(f, el) {
+        currentProjectFilter = f;
+        document.querySelectorAll("#project-filter-row .filter-chip").forEach(c => c.classList.remove("active"));
+        el.classList.add("active");
+        renderProjects();
+      }
+
+      function renderProjects() {
+        let projects = getProjects();
+        if (currentProjectFilter !== "all") projects = projects.filter(p => p.status === currentProjectFilter);
+        const container = document.getElementById("projects-list");
+        if (!projects.length) {
+          container.innerHTML = '<div class="empty-state"><div>🔧</div>No projects yet. Add your first installation!</div>';
+          return;
+        }
+        container.innerHTML = projects.map(p => {
+          const imgHTML = (p.images && p.images.length)
+            ? `<img src="${p.images[0]}" alt="${p.name}" />`
+            : `<span style="font-size:36px;">${p.type==="Residential"?"🏠":p.type==="Commercial"?"🏢":p.type==="Industrial"?"🏭":"🌾"}</span>`;
+          const statusClass = p.status === "Completed" ? "completed" : p.status === "In Progress" ? "inprogress" : "pending";
+          return `
+            <div class="project-card">
+              <div class="project-card-img">${imgHTML}</div>
+              <div class="project-card-body">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <div class="project-card-title">${p.name}</div>
+                  <span class="badge badge-${statusClass}">${p.status}</span>
+                  ${p.featured ? '<span style="background:#fef9c3;color:#854d0e;font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;">⭐ Featured</span>' : ""}
+                </div>
+                <div class="project-card-meta">
+                  <div class="project-meta-item">👤 ${p.customer || "—"}</div>
+                  <div class="project-meta-item">⚡ ${p.kw || "—"} kW</div>
+                  <div class="project-meta-item">📍 ${p.location || "—"}</div>
+                  <div class="project-meta-item">📅 ${p.date || "—"}</div>
+                  ${p.cost ? `<div class="project-meta-item">💰 ₹${p.cost}</div>` : ""}
+                  ${p.subsidy ? `<div class="project-meta-item">🏛️ ${p.subsidy}</div>` : ""}
+                </div>
+                ${p.desc ? `<div style="font-size:12px;color:#6b7280;margin-top:8px;line-height:1.5;">${p.desc}</div>` : ""}
+                ${p.images && p.images.length > 1 ? `<div style="display:flex;gap:6px;margin-top:8px;">${p.images.slice(1).map(img => `<img src="${img}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" />`).join("")}</div>` : ""}
+              </div>
+              <div class="project-card-actions">
+                <button class="action-btn btn-edit" onclick="editProject(${p.id})">Edit</button>
+                <button class="action-btn btn-delete" onclick="deleteProject(${p.id})">Delete</button>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      function openProjectModal(id = null) {
+        editingProjectId = id;
+        resetProjectForm();
+        if (id) {
+          const p = getProjects().find(pr => pr.id === id);
+          if (!p) return;
+          document.getElementById("project-modal-title").textContent = "Edit Project";
+          document.getElementById("p-name").value = p.name || "";
+          document.getElementById("p-customer").value = p.customer || "";
+          document.getElementById("p-phone").value = p.phone || "";
+          document.getElementById("p-type").value = p.type || "Residential";
+          document.getElementById("p-kw").value = p.kw || "";
+          document.getElementById("p-loc").value = p.location || "";
+          document.getElementById("p-date").value = p.date || "";
+          document.getElementById("p-status").value = p.status || "In Progress";
+          document.getElementById("p-cost").value = p.cost || "";
+          document.getElementById("p-subsidy").value = p.subsidy || "";
+          document.getElementById("p-desc").value = p.desc || "";
+          document.getElementById("p-featured").checked = !!p.featured;
+          tempImages["p"] = [...(p.images || [])];
+          renderPreviews("p");
+        } else {
+          document.getElementById("project-modal-title").textContent = "Add New Project";
+        }
+        document.getElementById("modal-project").classList.add("open");
+      }
+
+      function editProject(id) { openProjectModal(id); }
+
+      function resetProjectForm() {
+        ["p-name","p-customer","p-phone","p-kw","p-loc","p-cost","p-desc"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+        document.getElementById("p-type").value = "Residential";
+        document.getElementById("p-status").value = "In Progress";
+        document.getElementById("p-subsidy").value = "";
+        document.getElementById("p-date").value = new Date().toISOString().split("T")[0];
+        document.getElementById("p-featured").checked = false;
+        tempImages["p"] = [];
+        renderPreviews("p");
+        editingProjectId = null;
+      }
+
+      function saveProject() {
+        const name = document.getElementById("p-name").value.trim();
+        if (!name) { alert("Project name is required"); return; }
+        const projects = getProjects();
+        const data = {
+          name,
+          customer: document.getElementById("p-customer").value.trim(),
+          phone: document.getElementById("p-phone").value.trim(),
+          type: document.getElementById("p-type").value,
+          kw: parseFloat(document.getElementById("p-kw").value) || 0,
+          location: document.getElementById("p-loc").value.trim(),
+          status: document.getElementById("p-status").value,
+          date: document.getElementById("p-date").value || new Date().toISOString().split("T")[0],
+          cost: document.getElementById("p-cost").value.trim(),
+          subsidy: document.getElementById("p-subsidy").value,
+          desc: document.getElementById("p-desc").value.trim(),
+          featured: document.getElementById("p-featured").checked,
+          images: [...(tempImages["p"] || [])],
+        };
+        if (editingProjectId) {
+          const idx = projects.findIndex(p => p.id === editingProjectId);
+          if (idx !== -1) projects[idx] = { ...projects[idx], ...data };
+        } else {
+          projects.unshift({ id: Date.now(), ...data });
+        }
+        saveProjects(projects);
+        closeModal("modal-project");
+        resetProjectForm();
+        renderProjects();
+        renderDashboard();
+      }
+
+      function deleteProject(id) {
+        if (!confirm("Delete this project?")) return;
+        saveProjects(getProjects().filter(p => p.id !== id));
+        renderProjects(); renderDashboard();
+      }
+
+      // ===== REVIEWS =====
+      let editingReviewId = null;
+      let currentStarRating = 5;
+
+      function setRating(val) {
+        currentStarRating = val;
+        document.getElementById("r-rating").value = val;
+        document.querySelectorAll("#star-picker .star").forEach((s, i) => {
+          s.classList.toggle("active", i < val);
+        });
+      }
+
+      function filterReviews(f, el) {
+        currentReviewFilter = f;
+        document.querySelectorAll("#view-reviews .filter-chip").forEach(c => c.classList.remove("active"));
+        el.classList.add("active");
+        renderReviewsGrid();
+      }
+
+      function renderReviewsGrid() {
+        let reviews = getReviews();
+        if (currentReviewFilter === "visible") reviews = reviews.filter(r => r.visible);
+        if (currentReviewFilter === "hidden") reviews = reviews.filter(r => !r.visible);
+        const grid = document.getElementById("reviews-grid");
+        if (!reviews.length) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div>⭐</div>No reviews yet. Add your first customer review!</div>';
+          return;
+        }
+        grid.innerHTML = reviews.map(r => {
+          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+          const avatarHTML = r.photo
+            ? `<div class="review-avatar"><img src="${r.photo}" alt="${r.customer}" /></div>`
+            : `<div class="review-avatar">${r.customer.charAt(0).toUpperCase()}</div>`;
+          return `
+            <div class="review-card${r.visible ? "" : " hidden-review"}">
+              <div class="review-card-header">
+                ${avatarHTML}
+                <div>
+                  <div class="review-name">${r.customer}</div>
+                  <div class="review-location">📍 ${r.location || "Nagpur"}</div>
+                </div>
+                <span class="visibility-badge ${r.visible ? "visible-on" : "visible-off"}" style="margin-left:auto;">${r.visible ? "Visible" : "Hidden"}</span>
+              </div>
+              <div class="review-stars">${stars}</div>
+              <div class="review-text">"${r.text}"</div>
+              ${r.system ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);">⚡ ${r.system}</div>` : ""}
+              <div class="review-card-footer">
+                <div class="review-date">📅 ${r.date || ""}</div>
+                <div class="review-actions">
+                  <button class="action-btn btn-toggle" onclick="toggleReviewVisibility(${r.id})">${r.visible ? "Hide" : "Show"}</button>
+                  <button class="action-btn btn-edit" onclick="editReview(${r.id})">Edit</button>
+                  <button class="action-btn btn-delete" onclick="deleteReview(${r.id})">Del</button>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      function openReviewModal() {
+        editingReviewId = null;
+        resetReviewForm();
+        document.getElementById("review-modal-title").textContent = "Add Customer Review";
+        document.getElementById("modal-review").classList.add("open");
+      }
+
+      function editReview(id) {
+        const r = getReviews().find(rv => rv.id === id);
+        if (!r) return;
+        editingReviewId = id;
+        resetReviewForm();
+        document.getElementById("review-modal-title").textContent = "Edit Review";
+        document.getElementById("r-name").value = r.customer || "";
+        document.getElementById("r-loc").value = r.location || "";
+        document.getElementById("r-text").value = r.text || "";
+        document.getElementById("r-system").value = r.system || "";
+        document.getElementById("r-date").value = r.date || "";
+        document.getElementById("r-visible").checked = !!r.visible;
+        setRating(r.rating || 5);
+        if (r.photo) { tempImages["r-single"] = [r.photo]; renderPreviews("r-single"); }
+        document.getElementById("modal-review").classList.add("open");
+      }
+
+      function resetReviewForm() {
+        ["r-name","r-loc","r-text","r-system"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+        document.getElementById("r-date").value = new Date().toISOString().split("T")[0];
+        document.getElementById("r-visible").checked = true;
+        setRating(5);
+        tempImages["r-single"] = [];
+        renderPreviews("r-single");
+        editingReviewId = null;
+      }
+
+      function saveReview() {
+        const name = document.getElementById("r-name").value.trim();
+        if (!name) { alert("Customer name is required"); return; }
+        const reviews = getReviews();
+        const data = {
+          customer: name,
+          location: document.getElementById("r-loc").value.trim(),
+          rating: parseInt(document.getElementById("r-rating").value) || 5,
+          text: document.getElementById("r-text").value.trim(),
+          system: document.getElementById("r-system").value.trim(),
+          date: document.getElementById("r-date").value,
+          visible: document.getElementById("r-visible").checked,
+          photo: (tempImages["r-single"] && tempImages["r-single"][0]) || "",
+        };
+        if (editingReviewId) {
+          const idx = reviews.findIndex(r => r.id === editingReviewId);
+          if (idx !== -1) reviews[idx] = { ...reviews[idx], ...data };
+        } else {
+          reviews.unshift({ id: Date.now(), ...data });
+        }
+        saveReviews(reviews);
+        closeModal("modal-review");
+        resetReviewForm();
+        renderReviewsGrid();
+      }
+
+      function toggleReviewVisibility(id) {
+        const reviews = getReviews();
+        const r = reviews.find(rv => rv.id === id);
+        if (r) { r.visible = !r.visible; saveReviews(reviews); renderReviewsGrid(); }
+      }
+
+      function deleteReview(id) {
+        if (!confirm("Delete this review?")) return;
+        saveReviews(getReviews().filter(r => r.id !== id));
+        renderReviewsGrid();
+      }
+
+      // ===== SETTINGS =====
+      function saveSettings() {
+        const url = document.getElementById("s-website").value.trim();
+        if (url) localStorage.setItem("mss_website", url);
+        alert("✅ Settings saved!");
+      }
+
+      // Load saved website URL
+      function loadSettings() {
+        const saved = localStorage.getItem("mss_website");
+        if (saved && document.getElementById("s-website")) document.getElementById("s-website").value = saved;
+      }
+
+      // ===== MODAL =====
+      function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+      document.querySelectorAll(".modal-overlay").forEach(m =>
+        m.addEventListener("click", e => { if (e.target === m) { m.classList.remove("open"); resetProjectForm(); resetReviewForm(); } })
+      );
+
+      // Contact form on main site submits to leads
+      window.addEventListener("message", e => {
+        if (e.data && e.data.type === "new_lead") {
+          const leads = getLeads();
+          leads.unshift({ ...e.data.lead, id:Date.now(), status:"New", date:new Date().toISOString().split("T")[0] });
+          saveLeads(leads);
+        }
+      });
+
+      // Init if already logged in (re-open tab)
+      window.addEventListener("DOMContentLoaded", () => { loadSettings(); });
+    </script>
+  </body>
+</html>
